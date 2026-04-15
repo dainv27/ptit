@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <VBox spacing="10.0" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="vn.dainv.server.HelloController">
+      fx:controller="vn.dainv.server.ServerController">
     <padding>
         <Insets bottom="12.0" left="12.0" right="12.0" top="12.0"/>
     </padding>

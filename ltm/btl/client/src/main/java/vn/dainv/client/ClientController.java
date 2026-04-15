@@ -7,7 +7,7 @@ import javafx.scene.control.TextField;
 import java.io.IOException;
 import java.util.List;
 
-public class HelloController {
+public class ClientController {
     @FXML
     private TextField hostField;
     @FXML
