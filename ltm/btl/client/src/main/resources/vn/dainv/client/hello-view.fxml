@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<VBox spacing="10.0" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="vn.dainv.client.HelloController">
+    <padding>
+        <Insets bottom="12.0" left="12.0" right="12.0" top="12.0"/>
+    </padding>
+    <HBox spacing="8.0">
+        <Label text="Host"/>
+        <TextField fx:id="hostField" prefWidth="140.0"/>
+        <Label text="Port"/>
+        <TextField fx:id="portField" prefWidth="90.0"/>
+        <Button text="Ket noi" onAction="#onConnect"/>
+    </HBox>
+
+    <TabPane tabClosingPolicy="UNAVAILABLE">
+        <tabs>
+            <Tab text="Khach san">
+                <VBox spacing="8.0">
+                    <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                    </padding>
+                    <HBox spacing="8.0">
+                        <Label text="Ma"/>
+                        <TextField fx:id="hotelIdField"/>
+                        <Label text="Ten"/>
+                        <TextField fx:id="hotelNameField"/>
+                    </HBox>
+                    <HBox spacing="8.0">
+                        <Label text="So sao"/>
+                        <TextField fx:id="hotelStarsField"/>
+                        <Label text="Mo ta"/>
+                        <TextField fx:id="hotelDescField"/>
+                    </HBox>
+                    <HBox spacing="8.0">
+                        <Button text="Them KS" onAction="#onAddHotel"/>
+                        <Button text="Sua KS" onAction="#onUpdateHotel"/>
+                        <Button text="Xoa KS" onAction="#onDeleteHotel"/>
+                        <Button text="Danh sach KS" onAction="#onListHotels"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+            <Tab text="Phong">
+                <VBox spacing="8.0">
+                    <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+                    </padding>
+                    <HBox spacing="8.0">
+                        <Label text="Ma KS"/>
+                        <TextField fx:id="roomHotelIdField"/>
+                        <Label text="Ma phong"/>
+                        <TextField fx:id="roomIdField"/>
+                    </HBox>
+                    <HBox spacing="8.0">
+                        <Label text="Loai"/>
+                        <TextField fx:id="roomTypeField"/>
+                        <Label text="Gia"/>
+                        <TextField fx:id="roomPriceField"/>
+                    </HBox>
+                    <HBox spacing="8.0">
+                        <Button text="Them phong" onAction="#onAddRoom"/>
+                        <Button text="Sua phong" onAction="#onUpdateRoom"/>
+                        <Button text="Xoa phong" onAction="#onDeleteRoom"/>
+                        <Button text="Danh sach phong" onAction="#onListRooms"/>
+                    </HBox>
+                    <HBox spacing="8.0">
+                        <Label text="Tim loai"/>
+                        <TextField fx:id="searchTypeField"/>
+                        <Label text="Gia toi da"/>
+                        <TextField fx:id="searchMaxPriceField"/>
+                        <Button text="Tim phong" onAction="#onSearchRooms"/>
+                    </HBox>
+                </VBox>
+            </Tab>
+        </tabs>
+    </TabPane>
+    <TextArea fx:id="outputArea" prefHeight="260.0" wrapText="true"/>
+</VBox>
