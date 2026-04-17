@@ -12,10 +12,10 @@ public class HotelService {
 
     public synchronized String addHotel(String id, String name, int stars, String description) {
         if (id == null || id.isBlank()) {
-            return "Ma khach san khong duoc de trong";
+            return "Mã khách sạn không được để trống";
         }
         if (hotels.containsKey(id)) {
-            return "Khach san da ton tai";
+            return "Khách sạn đã tồn tại";
         }
         hotels.put(id, new Hotel(id, name, stars, description));
         roomsByHotel.put(id, new ConcurrentHashMap<String, Room>());
@@ -25,7 +25,7 @@ public class HotelService {
     public synchronized String updateHotel(String id, String name, int stars, String description) {
         Hotel hotel = hotels.get(id);
         if (hotel == null) {
-            return "Khong tim thay khach san";
+            return "Không tìm thấy khách sạn";
         }
         hotel.setName(name);
         hotel.setStars(stars);
@@ -36,10 +36,10 @@ public class HotelService {
     public synchronized String deleteHotel(String id) {
         Map<String, Room> rooms = roomsByHotel.get(id);
         if (rooms == null || !hotels.containsKey(id)) {
-            return "Khong tim thay khach san";
+            return "Không tìm thấy khách sạn";
         }
         if (!rooms.isEmpty()) {
-            return "Chi duoc xoa khach san khi da xoa het phong";
+            return "Chỉ được xóa khách sạn khi đã xóa hết phòng";
         }
         roomsByHotel.remove(id);
         hotels.remove(id);
@@ -48,11 +48,11 @@ public class HotelService {
 
     public synchronized String addRoom(String hotelId, String roomId, String type, double price) {
         if (!hotels.containsKey(hotelId)) {
-            return "Khong tim thay khach san";
+            return "Không tìm thấy khách sạn";
         }
         Map<String, Room> rooms = roomsByHotel.get(hotelId);
         if (rooms.containsKey(roomId)) {
-            return "Phong da ton tai";
+            return "Phòng đã tồn tại";
         }
         rooms.put(roomId, new Room(hotelId, roomId, type, price));
         return null;
@@ -61,11 +61,11 @@ public class HotelService {
     public synchronized String updateRoom(String hotelId, String roomId, String type, double price) {
         Map<String, Room> rooms = roomsByHotel.get(hotelId);
         if (rooms == null) {
-            return "Khong tim thay khach san";
+            return "Không tìm thấy khách sạn";
         }
         Room room = rooms.get(roomId);
         if (room == null) {
-            return "Khong tim thay phong";
+            return "Không tìm thấy phòng";
         }
         room.setType(type);
         room.setPrice(price);
@@ -75,11 +75,11 @@ public class HotelService {
     public synchronized String deleteRoom(String hotelId, String roomId) {
         Map<String, Room> rooms = roomsByHotel.get(hotelId);
         if (rooms == null) {
-            return "Khong tim thay khach san";
+            return "Không tìm thấy khách sạn";
         }
         Room removed = rooms.remove(roomId);
         if (removed == null) {
-            return "Khong tim thay phong";
+            return "Không tìm thấy phòng";
         }
         return null;
     }

@@ -12,12 +12,16 @@
     <padding>
         <Insets bottom="12.0" left="12.0" right="12.0" top="12.0"/>
     </padding>
-    <Label text="Server quan ly khach san (TCP/IP)"/>
+    <HBox spacing="8.0">
+        <Label text="Sinh viên thực hiện:"/>
+        <Label text="K24DTCN010 - Nguyễn Văn Đại"/>
+    </HBox>
+    <Label text="Server quản lý khách sạn (TCP/IP)"/>
     <HBox spacing="8.0">
         <Label text="Port:"/>
         <TextField fx:id="portField" prefWidth="100.0"/>
-        <Button text="Khoi dong" onAction="#onStartServer"/>
-        <Button text="Dung" onAction="#onStopServer"/>
+        <Button text="Khởi động" onAction="#onStartServer"/>
+        <Button text="Dừng" onAction="#onStopServer"/>
     </HBox>
     <TextArea fx:id="logArea" prefHeight="420.0" wrapText="true"/>
 </VBox>

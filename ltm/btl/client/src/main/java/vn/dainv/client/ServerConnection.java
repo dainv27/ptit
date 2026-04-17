@@ -30,7 +30,7 @@ public class ServerConnection {
 
     public ServerResponse send(String command, String... args) throws IOException {
         if (socket == null || socket.isClosed()) {
-            throw new IOException("Chua ket noi den server");
+            throw new IOException("Chưa kết nối đến server");
         }
         String line = command;
         if (args != null && args.length > 0) {
@@ -42,11 +42,11 @@ public class ServerConnection {
 
         String response = reader.readLine();
         if (response == null) {
-            throw new IOException("Server dong ket noi");
+            throw new IOException("Server đóng kết nối");
         }
         List<String> parts = ProtocolUtils.split(response, "\\|");
         String status = parts.size() > 0 ? parts.get(0) : "ERROR";
-        String message = parts.size() > 1 ? ProtocolUtils.decode(parts.get(1)) : "Loi khong ro";
+        String message = parts.size() > 1 ? ProtocolUtils.decode(parts.get(1)) : "Lỗi không rõ";
         String payload = parts.size() > 2
                 ? parts.subList(2, parts.size()).stream().collect(Collectors.joining("|"))
                 : "";

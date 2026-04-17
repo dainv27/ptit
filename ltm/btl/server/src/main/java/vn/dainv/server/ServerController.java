@@ -23,7 +23,7 @@ public class ServerController {
     public void initialize() {
         tcpServer = new HotelTcpServer(this::appendLog);
         portField.setText("5555");
-        appendLog("San sang khoi dong server");
+        appendLog("Sẵn sàng khởi động server");
     }
 
     @FXML
@@ -32,7 +32,7 @@ public class ServerController {
             int port = Integer.parseInt(portField.getText().trim());
             tcpServer.start(port);
         } catch (NumberFormatException ex) {
-            appendLog("Port khong hop le");
+            appendLog("Port không hợp lệ");
         } catch (IllegalStateException | IOException ex) {
             appendLog(ex.getMessage());
         }

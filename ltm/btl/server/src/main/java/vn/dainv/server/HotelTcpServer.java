@@ -29,14 +29,14 @@ public class HotelTcpServer {
 
     public synchronized void start(int port) throws IOException {
         if (running) {
-            throw new IllegalStateException("Server da dang chay");
+            throw new IllegalStateException("Server đã đang chạy");
         }
         serverSocket = new ServerSocket(port);
         running = true;
         acceptThread = new Thread(this::acceptLoop, "hotel-server-accept");
         acceptThread.setDaemon(true);
         acceptThread.start();
-        log("Server dang lang nghe tai cong " + port);
+        log("Server đang lắng nghe tại cổng " + port);
     }
 
     public synchronized void stop() {
@@ -45,22 +45,22 @@ public class HotelTcpServer {
             try {
                 serverSocket.close();
             } catch (IOException ex) {
-                log("Loi dong server: " + ex.getMessage());
+                log("Lỗi đóng server: " + ex.getMessage());
             }
         }
         clientPool.shutdownNow();
-        log("Server da dung");
+        log("Server đã dừng");
     }
 
     private void acceptLoop() {
         while (running) {
             try {
                 Socket client = serverSocket.accept();
-                log("Client ket noi: " + client.getRemoteSocketAddress());
+                log("Client kết nối: " + client.getRemoteSocketAddress());
                 clientPool.submit(() -> handleClient(client));
             } catch (IOException ex) {
                 if (running) {
-                    log("Loi chap nhan ket noi: " + ex.getMessage());
+                    log("Lỗi chấp nhận kết nối: " + ex.getMessage());
                 }
             }
         }
@@ -81,16 +81,16 @@ public class HotelTcpServer {
                 writer.flush();
             }
         } catch (IOException ex) {
-            log("Loi xu ly client: " + ex.getMessage());
+            log("Lỗi xử lý client: " + ex.getMessage());
         } finally {
-            log("Client da ngat ket noi");
+            log("Client đã ngắt kết nối");
         }
     }
 
     private String processRequest(String line) {
         List<String> parts = ProtocolUtils.split(line, "\\|");
         if (parts.isEmpty()) {
-            return error("Yeu cau rong");
+            return error("Yêu cầu rỗng");
         }
         String command = parts.get(0);
         try {
@@ -104,10 +104,10 @@ public class HotelTcpServer {
                 case "DELETE_ROOM" -> deleteRoom(parts);
                 case "LIST_ROOMS" -> listRooms(parts);
                 case "SEARCH_ROOMS" -> searchRooms(parts);
-                default -> error("Lenh khong hop le");
+                default -> error("Lệnh không hợp lệ");
             };
         } catch (Exception ex) {
-            return error("Xu ly that bai: " + ex.getMessage());
+            return error("Xử lý thất bại: " + ex.getMessage());
         }
     }
 
@@ -117,7 +117,7 @@ public class HotelTcpServer {
         int stars = Integer.parseInt(ProtocolUtils.decode(p.get(3)));
         String desc = ProtocolUtils.decode(p.get(4));
         String error = service.addHotel(id, name, stars, desc);
-        return error == null ? ok("Them khach san thanh cong", "") : error(error);
+        return error == null ? ok("Thêm khách sạn thành công", "") : error(error);
     }
 
     private String updateHotel(List<String> p) {
@@ -126,13 +126,13 @@ public class HotelTcpServer {
         int stars = Integer.parseInt(ProtocolUtils.decode(p.get(3)));
         String desc = ProtocolUtils.decode(p.get(4));
         String error = service.updateHotel(id, name, stars, desc);
-        return error == null ? ok("Sua khach san thanh cong", "") : error(error);
+        return error == null ? ok("Sửa khách sạn thành công", "") : error(error);
     }
 
     private String deleteHotel(List<String> p) {
         String id = ProtocolUtils.decode(p.get(1));
         String error = service.deleteHotel(id);
-        return error == null ? ok("Xoa khach san thanh cong", "") : error(error);
+        return error == null ? ok("Xóa khách sạn thành công", "") : error(error);
     }
 
     private String listHotels() {
@@ -143,7 +143,7 @@ public class HotelTcpServer {
                         ProtocolUtils.encode(String.valueOf(h.getStars())),
                         ProtocolUtils.encode(h.getDescription())))
                 .collect(Collectors.joining(";"));
-        return ok("Lay danh sach khach san thanh cong", payload);
+        return ok("Lấy danh sách khách sạn thành công", payload);
     }
 
     private String addRoom(List<String> p) {
@@ -152,7 +152,7 @@ public class HotelTcpServer {
         String type = ProtocolUtils.decode(p.get(3));
         double price = Double.parseDouble(ProtocolUtils.decode(p.get(4)));
         String error = service.addRoom(hotelId, roomId, type, price);
-        return error == null ? ok("Them phong thanh cong", "") : error(error);
+        return error == null ? ok("Thêm phòng thành công", "") : error(error);
     }
 
     private String updateRoom(List<String> p) {
@@ -161,14 +161,14 @@ public class HotelTcpServer {
         String type = ProtocolUtils.decode(p.get(3));
         double price = Double.parseDouble(ProtocolUtils.decode(p.get(4)));
         String error = service.updateRoom(hotelId, roomId, type, price);
-        return error == null ? ok("Sua phong thanh cong", "") : error(error);
+        return error == null ? ok("Sửa phòng thành công", "") : error(error);
     }
 
     private String deleteRoom(List<String> p) {
         String hotelId = ProtocolUtils.decode(p.get(1));
         String roomId = ProtocolUtils.decode(p.get(2));
         String error = service.deleteRoom(hotelId, roomId);
-        return error == null ? ok("Xoa phong thanh cong", "") : error(error);
+        return error == null ? ok("Xóa phòng thành công", "") : error(error);
     }
 
     private String listRooms(List<String> p) {
@@ -180,7 +180,7 @@ public class HotelTcpServer {
                         ProtocolUtils.encode(r.getType()),
                         ProtocolUtils.encode(String.valueOf(r.getPrice()))))
                 .collect(Collectors.joining(";"));
-        return ok("Lay danh sach phong thanh cong", payload);
+        return ok("Lấy danh sách phòng thành công", payload);
     }
 
     private String searchRooms(List<String> p) {
@@ -193,7 +193,7 @@ public class HotelTcpServer {
                         ProtocolUtils.encode(r.getType()),
                         ProtocolUtils.encode(String.valueOf(r.getPrice()))))
                 .collect(Collectors.joining(";"));
-        return ok("Tim kiem phong thanh cong", payload);
+        return ok("Tìm kiếm phòng thành công", payload);
     }
 
     private String ok(String message, String payload) {

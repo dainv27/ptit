@@ -2,9 +2,12 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
@@ -15,70 +18,62 @@
         <Insets bottom="12.0" left="12.0" right="12.0" top="12.0"/>
     </padding>
     <HBox spacing="8.0">
+        <Label text="Sinh viên thực hiện:"/>
+        <Label text="K24DTCN010 - Nguyễn Văn Đại"/>
+    </HBox>
+    <HBox spacing="8.0">
         <Label text="Host"/>
         <TextField fx:id="hostField" prefWidth="140.0"/>
         <Label text="Port"/>
         <TextField fx:id="portField" prefWidth="90.0"/>
-        <Button text="Ket noi" onAction="#onConnect"/>
+        <Button text="Kết nối" onAction="#onConnect"/>
     </HBox>
 
     <TabPane tabClosingPolicy="UNAVAILABLE">
         <tabs>
-            <Tab text="Khach san">
+            <Tab text="Khách sạn">
                 <VBox spacing="8.0">
                     <padding>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
                     </padding>
+                    <Label text="Sử dụng form popup để nhập dữ liệu khách sạn"/>
                     <HBox spacing="8.0">
-                        <Label text="Ma"/>
-                        <TextField fx:id="hotelIdField"/>
-                        <Label text="Ten"/>
-                        <TextField fx:id="hotelNameField"/>
+                        <Button text="Thêm" onAction="#onAddHotel"/>
+                        <Button text="Danh sách" onAction="#onListHotels"/>
                     </HBox>
-                    <HBox spacing="8.0">
-                        <Label text="So sao"/>
-                        <TextField fx:id="hotelStarsField"/>
-                        <Label text="Mo ta"/>
-                        <TextField fx:id="hotelDescField"/>
-                    </HBox>
-                    <HBox spacing="8.0">
-                        <Button text="Them KS" onAction="#onAddHotel"/>
-                        <Button text="Sua KS" onAction="#onUpdateHotel"/>
-                        <Button text="Xoa KS" onAction="#onDeleteHotel"/>
-                        <Button text="Danh sach KS" onAction="#onListHotels"/>
-                    </HBox>
+                    <TableView fx:id="hotelTable" prefHeight="220.0">
+                        <columns>
+                            <TableColumn fx:id="hotelIdColumn" prefWidth="120.0" text="Mã KS"/>
+                            <TableColumn fx:id="hotelNameColumn" prefWidth="180.0" text="Tên khách sạn"/>
+                            <TableColumn fx:id="hotelStarsColumn" prefWidth="80.0" text="Số sao"/>
+                            <TableColumn fx:id="hotelDescColumn" prefWidth="300.0" text="Mô tả"/>
+                            <TableColumn fx:id="hotelActionColumn" prefWidth="180.0" text="Thao tác"/>
+                        </columns>
+                    </TableView>
                 </VBox>
             </Tab>
-            <Tab text="Phong">
+            <Tab text="Phòng">
                 <VBox spacing="8.0">
                     <padding>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
                     </padding>
+                    <Label text="Sử dụng form popup để nhập dữ liệu phòng"/>
                     <HBox spacing="8.0">
-                        <Label text="Ma KS"/>
-                        <TextField fx:id="roomHotelIdField"/>
-                        <Label text="Ma phong"/>
-                        <TextField fx:id="roomIdField"/>
+                        <Label text="Khách sạn"/>
+                        <ComboBox fx:id="roomHotelFilterComboBox" prefWidth="220.0"/>
+                        <Button text="Thêm" onAction="#onAddRoom"/>
+                        <Button text="Danh sách" onAction="#onListRooms"/>
+                        <Button text="Tìm phòng" onAction="#onSearchRooms"/>
                     </HBox>
-                    <HBox spacing="8.0">
-                        <Label text="Loai"/>
-                        <TextField fx:id="roomTypeField"/>
-                        <Label text="Gia"/>
-                        <TextField fx:id="roomPriceField"/>
-                    </HBox>
-                    <HBox spacing="8.0">
-                        <Button text="Them phong" onAction="#onAddRoom"/>
-                        <Button text="Sua phong" onAction="#onUpdateRoom"/>
-                        <Button text="Xoa phong" onAction="#onDeleteRoom"/>
-                        <Button text="Danh sach phong" onAction="#onListRooms"/>
-                    </HBox>
-                    <HBox spacing="8.0">
-                        <Label text="Tim loai"/>
-                        <TextField fx:id="searchTypeField"/>
-                        <Label text="Gia toi da"/>
-                        <TextField fx:id="searchMaxPriceField"/>
-                        <Button text="Tim phong" onAction="#onSearchRooms"/>
-                    </HBox>
+                    <TableView fx:id="roomTable" prefHeight="220.0">
+                        <columns>
+                            <TableColumn fx:id="roomHotelIdColumn" prefWidth="120.0" text="Mã KS"/>
+                            <TableColumn fx:id="roomIdColumn" prefWidth="120.0" text="Mã phòng"/>
+                            <TableColumn fx:id="roomTypeColumn" prefWidth="180.0" text="Loại phòng"/>
+                            <TableColumn fx:id="roomPriceColumn" prefWidth="120.0" text="Giá"/>
+                            <TableColumn fx:id="roomActionColumn" prefWidth="180.0" text="Thao tác"/>
+                        </columns>
+                    </TableView>
                 </VBox>
             </Tab>
         </tabs>
