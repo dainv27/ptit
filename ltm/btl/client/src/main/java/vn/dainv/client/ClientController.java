@@ -1,5 +1,6 @@
 package vn.dainv.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -94,11 +95,11 @@ public class ClientController {
             return;
         }
         List<String> values = mapValues(formData.get());
-        sendAndPrint("ADD_HOTEL",
-                ProtocolUtils.encode(values.get(0)),
-                ProtocolUtils.encode(values.get(1)),
-                ProtocolUtils.encode(values.get(2)),
-                ProtocolUtils.encode(values.get(3)));
+        sendAndPrint("ADD_HOTEL", Map.of(
+                "id", values.get(0),
+                "name", values.get(1),
+                "stars", values.get(2),
+                "description", values.get(3)));
         onListHotels();
     }
 
@@ -114,19 +115,19 @@ public class ClientController {
             updateRoomHotelFilter();
             return;
         }
-        if (response.getPayload().isBlank()) {
+        JsonNode data = response.getData();
+        if (!data.isArray() || data.isEmpty()) {
             print("Không có khách sạn");
             hotelTable.getItems().clear();
             updateRoomHotelFilter();
             return;
         }
         ObservableList<HotelRow> rows = FXCollections.observableArrayList();
-        for (String record : ProtocolUtils.split(response.getPayload(), ";")) {
-            List<String> fields = ProtocolUtils.split(record, ",");
-            String id = ProtocolUtils.decode(fields.get(0));
-            String name = ProtocolUtils.decode(fields.get(1));
-            String stars = ProtocolUtils.decode(fields.get(2));
-            String desc = ProtocolUtils.decode(fields.get(3));
+        for (JsonNode item : data) {
+            String id = item.path("id").asText("");
+            String name = item.path("name").asText("");
+            String stars = item.path("stars").asText("");
+            String desc = item.path("description").asText("");
             rows.add(new HotelRow(id, name, stars, desc));
             print("- KS: id=" + id + ", tên=" + name + ", sao=" + stars + ", mô tả=" + desc);
         }
@@ -144,11 +145,11 @@ public class ClientController {
             return;
         }
         List<String> values = mapValues(formData.get());
-        sendAndPrint("ADD_ROOM",
-                ProtocolUtils.encode(values.get(0)),
-                ProtocolUtils.encode(values.get(1)),
-                ProtocolUtils.encode(values.get(2)),
-                ProtocolUtils.encode(values.get(3)));
+        sendAndPrint("ADD_ROOM", Map.of(
+                "hotelId", values.get(0),
+                "roomId", values.get(1),
+                "type", values.get(2),
+                "price", values.get(3)));
         refreshRoomTableByHotel(values.get(0));
     }
 
@@ -161,9 +162,9 @@ public class ClientController {
         }
         ServerResponse response;
         if (ALL_HOTELS_OPTION.equals(hotelId)) {
-            response = send("SEARCH_ROOMS", ProtocolUtils.encode(""), ProtocolUtils.encode("-1"));
+            response = send("SEARCH_ROOMS", Map.of("keyword", "", "maxPrice", -1));
         } else {
-            response = send("LIST_ROOMS", ProtocolUtils.encode(hotelId));
+            response = send("LIST_ROOMS", Map.of("hotelId", hotelId));
         }
         if (response == null) {
             return;
@@ -173,12 +174,13 @@ public class ClientController {
             roomTable.getItems().clear();
             return;
         }
-        if (response.getPayload().isBlank()) {
+        JsonNode data = response.getData();
+        if (!data.isArray() || data.isEmpty()) {
             print("Không có phòng");
             roomTable.getItems().clear();
             return;
         }
-        showRooms(response.getPayload());
+        showRooms(data);
     }
 
     @FXML
@@ -196,8 +198,7 @@ public class ClientController {
             maxPriceText = "-1";
         }
         ServerResponse response = send("SEARCH_ROOMS",
-                ProtocolUtils.encode(values.get(0)),
-                ProtocolUtils.encode(maxPriceText));
+                Map.of("keyword", values.get(0), "maxPrice", maxPriceText));
         if (response == null) {
             return;
         }
@@ -206,12 +207,13 @@ public class ClientController {
             roomTable.getItems().clear();
             return;
         }
-        if (response.getPayload().isBlank()) {
+        JsonNode data = response.getData();
+        if (!data.isArray() || data.isEmpty()) {
             print("Không tìm thấy phòng phù hợp");
             roomTable.getItems().clear();
             return;
         }
-        showRooms(response.getPayload());
+        showRooms(data);
     }
 
     private void initTables() {
@@ -227,14 +229,13 @@ public class ClientController {
         setupRoomActionColumn();
     }
 
-    private void showRooms(String payload) {
+    private void showRooms(JsonNode payload) {
         ObservableList<RoomRow> rows = FXCollections.observableArrayList();
-        for (String record : ProtocolUtils.split(payload, ";")) {
-            List<String> fields = ProtocolUtils.split(record, ",");
-            String hotelId = ProtocolUtils.decode(fields.get(0));
-            String roomId = ProtocolUtils.decode(fields.get(1));
-            String type = ProtocolUtils.decode(fields.get(2));
-            String price = ProtocolUtils.decode(fields.get(3));
+        for (JsonNode item : payload) {
+            String hotelId = item.path("hotelId").asText("");
+            String roomId = item.path("roomId").asText("");
+            String type = item.path("type").asText("");
+            String price = item.path("price").asText("");
             rows.add(new RoomRow(hotelId, roomId, type, price));
             print("- Phòng: kháchSạn=" + hotelId
                     + ", mãPhòng=" + roomId
@@ -357,11 +358,11 @@ public class ClientController {
             return;
         }
         List<String> values = mapValues(formData.get());
-        sendAndPrint("UPDATE_HOTEL",
-                ProtocolUtils.encode(values.get(0)),
-                ProtocolUtils.encode(values.get(1)),
-                ProtocolUtils.encode(values.get(2)),
-                ProtocolUtils.encode(values.get(3)));
+        sendAndPrint("UPDATE_HOTEL", Map.of(
+                "id", values.get(0),
+                "name", values.get(1),
+                "stars", values.get(2),
+                "description", values.get(3)));
         onListHotels();
     }
 
@@ -369,7 +370,7 @@ public class ClientController {
         if (!confirmDelete("khách sạn", row.getId())) {
             return;
         }
-        sendAndPrint("DELETE_HOTEL", ProtocolUtils.encode(row.getId()));
+        sendAndPrint("DELETE_HOTEL", Map.of("id", row.getId()));
         onListHotels();
     }
 
@@ -382,11 +383,11 @@ public class ClientController {
             return;
         }
         List<String> values = mapValues(formData.get());
-        sendAndPrint("UPDATE_ROOM",
-                ProtocolUtils.encode(values.get(0)),
-                ProtocolUtils.encode(values.get(1)),
-                ProtocolUtils.encode(values.get(2)),
-                ProtocolUtils.encode(values.get(3)));
+        sendAndPrint("UPDATE_ROOM", Map.of(
+                "hotelId", values.get(0),
+                "roomId", values.get(1),
+                "type", values.get(2),
+                "price", values.get(3)));
         refreshRoomTableByHotel(values.get(0));
     }
 
@@ -394,9 +395,9 @@ public class ClientController {
         if (!confirmDelete("phòng", row.getRoomId())) {
             return;
         }
-        sendAndPrint("DELETE_ROOM",
-                ProtocolUtils.encode(row.getHotelId()),
-                ProtocolUtils.encode(row.getRoomId()));
+        sendAndPrint("DELETE_ROOM", Map.of(
+                "hotelId", row.getHotelId(),
+                "roomId", row.getRoomId()));
         refreshRoomTableByHotel(row.getHotelId());
     }
 
@@ -410,16 +411,17 @@ public class ClientController {
 
     private void refreshRoomTableByHotel(String hotelId) {
         roomHotelFilterComboBox.setValue(hotelId);
-        ServerResponse response = send("LIST_ROOMS", ProtocolUtils.encode(hotelId));
+        ServerResponse response = send("LIST_ROOMS", Map.of("hotelId", hotelId));
         if (response == null) {
             return;
         }
         print(response.getMessage());
-        if (!response.isOk() || response.getPayload().isBlank()) {
+        JsonNode data = response.getData();
+        if (!response.isOk() || !data.isArray() || data.isEmpty()) {
             roomTable.getItems().clear();
             return;
         }
-        showRooms(response.getPayload());
+        showRooms(data);
     }
 
     private void updateRoomHotelFilter() {
@@ -503,16 +505,20 @@ public class ClientController {
         return dialog.showAndWait();
     }
 
-    private void sendAndPrint(String command, String... args) {
-        ServerResponse response = send(command, args);
+    private void sendAndPrint(String command, Map<String, Object> data) {
+        ServerResponse response = send(command, data);
         if (response != null) {
             print(response.getMessage());
         }
     }
 
-    private ServerResponse send(String command, String... args) {
+    private ServerResponse send(String command) {
+        return send(command, Map.of());
+    }
+
+    private ServerResponse send(String command, Map<String, Object> data) {
         try {
-            return connection.send(command, args);
+            return connection.send(command, data);
         } catch (IOException ex) {
             print("Lỗi giao tiếp: " + ex.getMessage());
             return null;

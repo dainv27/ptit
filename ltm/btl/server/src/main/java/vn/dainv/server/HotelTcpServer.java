@@ -1,5 +1,10 @@
 package vn.dainv.server;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -8,19 +13,18 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class HotelTcpServer {
-    private final HotelService service = new HotelService();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private final DatabaseManager databaseManager = new DatabaseManager();
+    private final HotelService service = new HotelService(databaseManager);
     private final ExecutorService clientPool = Executors.newCachedThreadPool();
     private final Consumer<String> logger;
 
     private ServerSocket serverSocket;
-    private Thread acceptThread;
     private volatile boolean running;
 
     public HotelTcpServer(Consumer<String> logger) {
@@ -31,9 +35,17 @@ public class HotelTcpServer {
         if (running) {
             throw new IllegalStateException("Server đã đang chạy");
         }
+        DatabaseConfig databaseConfig = DatabaseConfig.fromEnv();
+        try {
+            databaseManager.connect(databaseConfig);
+            databaseManager.initializeSchema();
+            log("Kết nối database thành công: " + databaseConfig.host() + ":" + databaseConfig.port() + "/" + databaseConfig.database());
+        } catch (Exception ex) {
+            throw new IOException("Không thể kết nối database: " + ex.getMessage(), ex);
+        }
         serverSocket = new ServerSocket(port);
         running = true;
-        acceptThread = new Thread(this::acceptLoop, "hotel-server-accept");
+        Thread acceptThread = new Thread(this::acceptLoop, "hotel-server-accept");
         acceptThread.setDaemon(true);
         acceptThread.start();
         log("Server đang lắng nghe tại cổng " + port);
@@ -49,6 +61,7 @@ public class HotelTcpServer {
             }
         }
         clientPool.shutdownNow();
+        databaseManager.disconnect();
         log("Server đã dừng");
     }
 
@@ -88,120 +101,163 @@ public class HotelTcpServer {
     }
 
     private String processRequest(String line) {
-        List<String> parts = ProtocolUtils.split(line, "\\|");
-        if (parts.isEmpty()) {
-            return error("Yêu cầu rỗng");
-        }
-        String command = parts.get(0);
         try {
+            JsonNode request = MAPPER.readTree(line);
+            String command = getTextFromJson(request, "command");
+            JsonNode data = request.path("data");
+            if (command.isBlank()) {
+                return error("Lệnh không được để trống");
+            }
             return switch (command) {
-                case "ADD_HOTEL" -> addHotel(parts);
-                case "UPDATE_HOTEL" -> updateHotel(parts);
-                case "DELETE_HOTEL" -> deleteHotel(parts);
+                case "ADD_HOTEL" -> addHotel(data);
+                case "UPDATE_HOTEL" -> updateHotel(data);
+                case "DELETE_HOTEL" -> deleteHotel(data);
                 case "LIST_HOTELS" -> listHotels();
-                case "ADD_ROOM" -> addRoom(parts);
-                case "UPDATE_ROOM" -> updateRoom(parts);
-                case "DELETE_ROOM" -> deleteRoom(parts);
-                case "LIST_ROOMS" -> listRooms(parts);
-                case "SEARCH_ROOMS" -> searchRooms(parts);
+                case "ADD_ROOM" -> addRoom(data);
+                case "UPDATE_ROOM" -> updateRoom(data);
+                case "DELETE_ROOM" -> deleteRoom(data);
+                case "LIST_ROOMS" -> listRooms(data);
+                case "SEARCH_ROOMS" -> searchRooms(data);
                 default -> error("Lệnh không hợp lệ");
             };
+        } catch (IOException ex) {
+            return error("Yêu cầu JSON không hợp lệ: " + ex.getMessage());
         } catch (Exception ex) {
             return error("Xử lý thất bại: " + ex.getMessage());
         }
     }
 
-    private String addHotel(List<String> p) {
-        String id = ProtocolUtils.decode(p.get(1));
-        String name = ProtocolUtils.decode(p.get(2));
-        int stars = Integer.parseInt(ProtocolUtils.decode(p.get(3)));
-        String desc = ProtocolUtils.decode(p.get(4));
+    private String addHotel(JsonNode data) {
+        String id = getTextFromJson(data, "id");
+        String name = getTextFromJson(data, "name");
+        int stars = intValue(data, "stars");
+        String desc = getTextFromJson(data, "description");
         String error = service.addHotel(id, name, stars, desc);
-        return error == null ? ok("Thêm khách sạn thành công", "") : error(error);
+        return error == null ? ok("Thêm khách sạn thành công", MAPPER.createObjectNode()) : error(error);
     }
 
-    private String updateHotel(List<String> p) {
-        String id = ProtocolUtils.decode(p.get(1));
-        String name = ProtocolUtils.decode(p.get(2));
-        int stars = Integer.parseInt(ProtocolUtils.decode(p.get(3)));
-        String desc = ProtocolUtils.decode(p.get(4));
+    private String updateHotel(JsonNode data) {
+        String id = getTextFromJson(data, "id");
+        String name = getTextFromJson(data, "name");
+        int stars = intValue(data, "stars");
+        String desc = getTextFromJson(data, "description");
         String error = service.updateHotel(id, name, stars, desc);
-        return error == null ? ok("Sửa khách sạn thành công", "") : error(error);
+        return error == null ? ok("Sửa khách sạn thành công", MAPPER.createObjectNode()) : error(error);
     }
 
-    private String deleteHotel(List<String> p) {
-        String id = ProtocolUtils.decode(p.get(1));
+    private String deleteHotel(JsonNode data) {
+        String id = getTextFromJson(data, "id");
         String error = service.deleteHotel(id);
-        return error == null ? ok("Xóa khách sạn thành công", "") : error(error);
+        return error == null ? ok("Xóa khách sạn thành công", MAPPER.createObjectNode()) : error(error);
     }
 
     private String listHotels() {
-        String payload = service.listHotels().stream()
-                .map(h -> String.join(",",
-                        ProtocolUtils.encode(h.getId()),
-                        ProtocolUtils.encode(h.getName()),
-                        ProtocolUtils.encode(String.valueOf(h.getStars())),
-                        ProtocolUtils.encode(h.getDescription())))
-                .collect(Collectors.joining(";"));
+        ArrayNode payload = MAPPER.createArrayNode();
+        for (Hotel hotel : service.listHotels()) {
+            ObjectNode item = payload.addObject();
+            item.put("id", hotel.getId());
+            item.put("name", hotel.getName());
+            item.put("stars", hotel.getStars());
+            item.put("description", hotel.getDescription());
+        }
         return ok("Lấy danh sách khách sạn thành công", payload);
     }
 
-    private String addRoom(List<String> p) {
-        String hotelId = ProtocolUtils.decode(p.get(1));
-        String roomId = ProtocolUtils.decode(p.get(2));
-        String type = ProtocolUtils.decode(p.get(3));
-        double price = Double.parseDouble(ProtocolUtils.decode(p.get(4)));
+    private String addRoom(JsonNode data) {
+        String hotelId = getTextFromJson(data, "hotelId");
+        String roomId = getTextFromJson(data, "roomId");
+        String type = getTextFromJson(data, "type");
+        double price = doubleValue(data, "price");
         String error = service.addRoom(hotelId, roomId, type, price);
-        return error == null ? ok("Thêm phòng thành công", "") : error(error);
+        return error == null ? ok("Thêm phòng thành công", MAPPER.createObjectNode()) : error(error);
     }
 
-    private String updateRoom(List<String> p) {
-        String hotelId = ProtocolUtils.decode(p.get(1));
-        String roomId = ProtocolUtils.decode(p.get(2));
-        String type = ProtocolUtils.decode(p.get(3));
-        double price = Double.parseDouble(ProtocolUtils.decode(p.get(4)));
+    private String updateRoom(JsonNode data) {
+        String hotelId = getTextFromJson(data, "hotelId");
+        String roomId = getTextFromJson(data, "roomId");
+        String type = getTextFromJson(data, "type");
+        double price = doubleValue(data, "price");
         String error = service.updateRoom(hotelId, roomId, type, price);
-        return error == null ? ok("Sửa phòng thành công", "") : error(error);
+        return error == null ? ok("Sửa phòng thành công", MAPPER.createObjectNode()) : error(error);
     }
 
-    private String deleteRoom(List<String> p) {
-        String hotelId = ProtocolUtils.decode(p.get(1));
-        String roomId = ProtocolUtils.decode(p.get(2));
+    private String deleteRoom(JsonNode data) {
+        String hotelId = getTextFromJson(data, "hotelId");
+        String roomId = getTextFromJson(data, "roomId");
         String error = service.deleteRoom(hotelId, roomId);
-        return error == null ? ok("Xóa phòng thành công", "") : error(error);
+        return error == null ? ok("Xóa phòng thành công", MAPPER.createObjectNode()) : error(error);
     }
 
-    private String listRooms(List<String> p) {
-        String hotelId = ProtocolUtils.decode(p.get(1));
-        String payload = service.listRooms(hotelId).stream()
-                .map(r -> String.join(",",
-                        ProtocolUtils.encode(r.getHotelId()),
-                        ProtocolUtils.encode(r.getRoomId()),
-                        ProtocolUtils.encode(r.getType()),
-                        ProtocolUtils.encode(String.valueOf(r.getPrice()))))
-                .collect(Collectors.joining(";"));
+    private String listRooms(JsonNode data) {
+        String hotelId = getTextFromJson(data, "hotelId");
+        ArrayNode payload = MAPPER.createArrayNode();
+        for (Room room : service.listRooms(hotelId)) {
+            ObjectNode item = payload.addObject();
+            item.put("hotelId", room.getHotelId());
+            item.put("roomId", room.getRoomId());
+            item.put("type", room.getType());
+            item.put("price", room.getPrice());
+        }
         return ok("Lấy danh sách phòng thành công", payload);
     }
 
-    private String searchRooms(List<String> p) {
-        String keyword = ProtocolUtils.decode(p.get(1));
-        double maxPrice = Double.parseDouble(ProtocolUtils.decode(p.get(2)));
-        String payload = service.searchRooms(keyword, maxPrice).stream()
-                .map(r -> String.join(",",
-                        ProtocolUtils.encode(r.getHotelId()),
-                        ProtocolUtils.encode(r.getRoomId()),
-                        ProtocolUtils.encode(r.getType()),
-                        ProtocolUtils.encode(String.valueOf(r.getPrice()))))
-                .collect(Collectors.joining(";"));
+    private String searchRooms(JsonNode data) {
+        String keyword = getTextFromJson(data, "keyword");
+        double maxPrice = doubleValue(data, "maxPrice");
+        ArrayNode payload = MAPPER.createArrayNode();
+        for (Room room : service.searchRooms(keyword, maxPrice)) {
+            ObjectNode item = payload.addObject();
+            item.put("hotelId", room.getHotelId());
+            item.put("roomId", room.getRoomId());
+            item.put("type", room.getType());
+            item.put("price", room.getPrice());
+        }
         return ok("Tìm kiếm phòng thành công", payload);
     }
 
-    private String ok(String message, String payload) {
-        return "OK|" + ProtocolUtils.encode(message) + "|" + payload;
+    private String ok(String message, JsonNode data) {
+        return response(true, message, data);
     }
 
     private String error(String message) {
-        return "ERROR|" + ProtocolUtils.encode(message) + "|";
+        return response(false, message, MAPPER.createObjectNode());
+    }
+
+    private String response(boolean ok, String message, JsonNode data) {
+        ObjectNode node = MAPPER.createObjectNode();
+        node.put("ok", ok);
+        node.put("message", message);
+        node.set("data", data == null ? MAPPER.createObjectNode() : data);
+        return node.toString();
+    }
+
+    private String getTextFromJson(JsonNode data, String field) {
+        JsonNode value = data.path(field);
+        return value.isMissingNode() || value.isNull() ? "" : value.asText("");
+    }
+
+    private int intValue(JsonNode data, String field) {
+        JsonNode value = data.path(field);
+        if (value.isInt() || value.isLong()) {
+            return value.asInt();
+        }
+        String text = value.asText("");
+        if (text.isBlank()) {
+            return 0;
+        }
+        return Integer.parseInt(text);
+    }
+
+    private double doubleValue(JsonNode data, String field) {
+        JsonNode value = data.path(field);
+        if (value.isNumber()) {
+            return value.asDouble();
+        }
+        String text = value.asText("");
+        if (text.isBlank()) {
+            return 0;
+        }
+        return Double.parseDouble(text);
     }
 
     private void log(String message) {

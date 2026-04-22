@@ -1,14 +1,16 @@
 package vn.dainv.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 public class ServerResponse {
     private final boolean ok;
     private final String message;
-    private final String payload;
+    private final JsonNode data;
 
-    public ServerResponse(boolean ok, String message, String payload) {
+    public ServerResponse(boolean ok, String message, JsonNode data) {
         this.ok = ok;
         this.message = message;
-        this.payload = payload;
+        this.data = data;
     }
 
     public boolean isOk() {
@@ -19,7 +21,7 @@ public class ServerResponse {
         return message;
     }
 
-    public String getPayload() {
-        return payload;
+    public JsonNode getData() {
+        return data;
     }
 }
