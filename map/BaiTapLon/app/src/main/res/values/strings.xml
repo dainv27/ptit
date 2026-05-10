@@ -17,7 +17,9 @@
     <string name="chi_tiet">Chi tiết</string>
     <string name="link_hinh">Link hình ảnh</string>
     <string name="ngay_dang">Ngày đăng (yyyy-MM-dd)</string>
+    <string name="list_ngay_dang">Ngày đăng</string>
     <string name="the_loai_tin">Thể loại</string>
+    <string name="loai_tin">Loại tin</string>
     <string name="luu">Lưu</string>
     <string name="da_luu">Đã lưu</string>
     <string name="da_xoa">Đã xóa</string>

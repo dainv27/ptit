@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -62,6 +61,7 @@ public class BaoCaoNgayActivity extends AppCompatActivity {
         listView.setAdapter(adapter);
 
         MaterialButton btn = findViewById(R.id.btn_truy_van_ngay);
+
         btn.setOnClickListener(v -> truyVan());
     }
 
@@ -106,20 +106,10 @@ public class BaoCaoNgayActivity extends AppCompatActivity {
         public View getView(int position, View convertView, ViewGroup parent) {
             View row = convertView;
             if (row == null) {
-                row = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_tin_tuc_bao_cao, parent, false);
+                row = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_tin_tuc, parent, false);
             }
             TinTuc n = getItem(position);
-            ((TextView) row.findViewById(R.id.bc_tieu_de)).setText(n.getTieuDe());
-            ((TextView) row.findViewById(R.id.bc_ngay)).setText(n.getNgayDang());
-            ((TextView) row.findViewById(R.id.bc_loai)).setText(db.getTenLoai(n.getMaLoai()));
-            row.findViewById(R.id.bc_loai).setVisibility(View.VISIBLE);
-            TextView detail = row.findViewById(R.id.bc_chi_tiet_short);
-            String ct = n.getChiTiet();
-            if (ct.length() > 120) {
-                detail.setText(ct.substring(0, 120) + "…");
-            } else {
-                detail.setText(ct);
-            }
+            TinTucItemBinder.bind(BaoCaoNgayActivity.this, row, n, db, false, null);
             return row;
         }
     }

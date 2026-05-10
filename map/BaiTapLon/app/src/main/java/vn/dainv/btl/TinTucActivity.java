@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -114,10 +113,7 @@ public class TinTucActivity extends AppCompatActivity {
                 row = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_tin_tuc, parent, false);
             }
             TinTuc n = getItem(position);
-            ((TextView) row.findViewById(R.id.item_tieu_de)).setText(n.getTieuDe());
-            ((TextView) row.findViewById(R.id.item_ten_loai_tin)).setText(db.getTenLoai(n.getMaLoai()));
-            ((TextView) row.findViewById(R.id.item_ngay_dang)).setText(n.getNgayDang());
-            row.findViewById(R.id.btn_delete_tin).setOnClickListener(v -> confirmDelete(n));
+            TinTucItemBinder.bind(TinTucActivity.this, row, n, db, true, v -> confirmDelete(n));
             return row;
         }
     }

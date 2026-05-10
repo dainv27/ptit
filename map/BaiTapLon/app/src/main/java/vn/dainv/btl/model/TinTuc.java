@@ -6,7 +6,6 @@ public class TinTuc {
     private String chiTiet;
     private String linkHinh;
     private long maLoai;
-    /** Định dạng yyyy-MM-dd */
     private String ngayDang;
 
     public TinTuc(long maTin, String tieuDe, String chiTiet, String linkHinh, long maLoai, String ngayDang) {

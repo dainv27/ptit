@@ -19,10 +19,35 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/item_ma_tin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelMedium" />
+
+            <ImageView
+                android:id="@+id/item_hinh_anh"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:layout_marginTop="8dp"
+                android:contentDescription="@string/link_hinh"
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
+
+            <TextView
                 android:id="@+id/item_tieu_de"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+            <TextView
+                android:id="@+id/item_chi_tiet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:maxLines="4"
+                android:textAppearance="?attr/textAppearanceBodySmall" />
 
             <TextView
                 android:id="@+id/item_ten_loai_tin"

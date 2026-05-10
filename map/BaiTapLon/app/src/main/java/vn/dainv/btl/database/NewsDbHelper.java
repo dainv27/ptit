@@ -50,6 +50,7 @@ public class NewsDbHelper extends SQLiteOpenHelper {
                 + C_TEN_LOAI + " TEXT NOT NULL,"
                 + C_MO_TA_LOAI + " TEXT"
                 + ")");
+
         db.execSQL("CREATE TABLE " + T_TIN_TUC + " ("
                 + C_MA_TIN + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + C_TIEU_DE + " TEXT NOT NULL,"
@@ -71,7 +72,6 @@ public class NewsDbHelper extends SQLiteOpenHelper {
         }
     }
 
-    /** Chỉ thêm dữ liệu mẫu khi chưa có thể loại (không ghi đè dữ liệu người dùng). */
     private void seedSampleDataIfEmpty(SQLiteDatabase db) {
         long n = DatabaseUtils.queryNumEntries(db, T_THE_LOAI);
         if (n > 0) return;
@@ -161,7 +161,6 @@ public class NewsDbHelper extends SQLiteOpenHelper {
         return db.update(T_THE_LOAI, v, C_MA_LOAI + "=?", new String[]{String.valueOf(t.getMaLoai())});
     }
 
-    /** @return số tin bị ảnh hưởng nếu không xóa được thể loại (còn tin), -1 nếu đã xóa */
     public int countTinByMaLoai(long maLoai) {
         SQLiteDatabase db = getReadableDatabase();
         try (Cursor c = db.rawQuery(
@@ -267,7 +266,6 @@ public class NewsDbHelper extends SQLiteOpenHelper {
         return list;
     }
 
-    /** Ngày lưu dạng yyyy-MM-dd; truy vấn khoảng [tuNgay, denNgay] inclusive. */
     public List<TinTuc> getTinTucByNgayTrongKhoang(String tuNgay, String denNgay) {
         List<TinTuc> list = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
