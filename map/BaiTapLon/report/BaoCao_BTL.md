@@ -73,8 +73,6 @@ Trong thời đại công nghệ thông tin phát triển mạnh mẽ, việc ti
 
 #### 1.2.1. Yêu cầu chức năng
 
-Dựa trên đề bài, ứng dụng cần đáp ứng các yêu cầu chức năng sau:
-
 | STT | Yêu cầu chức năng |
 |-----|-------------------|
 | 1 | Thêm thể loại tin mới (mã loại, tên loại, mô tả) |
@@ -119,28 +117,11 @@ Mối quan hệ giữa hai thực thể là **1:N** — một thể loại có t
 
 Sơ đồ kiến trúc tổng quan:
 
-```
-┌─────────────────────────────────┐
-│       Người dùng (User)         │
-└────────────────┬────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────┐
-│    Lớp giao diện (UI Layer)     │
-│    XML Layout + Activity        │
-└────────────────┬────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────┐
-│  Lớp xử lý nghiệp vụ (Logic)   │
-│  Java Classes (Model, Helper)   │
-└────────────────┬────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────┐
-│    Lớp dữ liệu (Data Layer)     │
-│    SQLite Database              │
-└─────────────────────────────────┘
+```mermaid
+flowchart TD
+    User["👤 Người dùng (User)"] --> UI["📱 Lớp giao diện (UI Layer)\nXML Layout + Activity"]
+    UI --> Logic["⚙️ Lớp xử lý nghiệp vụ (Business Logic)\nJava Classes (Model, Helper)"]
+    Logic --> DB["🗄️ Lớp dữ liệu (Data Layer)\nSQLite Database"]
 ```
 
 Ứng dụng sử dụng kiến trúc **MVC (Model-View-Controller):**
@@ -166,9 +147,24 @@ Sơ đồ kiến trúc tổng quan:
 
 Ứng dụng có **5 UseCase** chính:
 
+```mermaid
+flowchart LR
+    User["👤 Người dùng"] --> UC1["Quản lý thể loại tin"]
+    User --> UC2["Quản lý tin tức"]
+    User --> UC3["Báo cáo theo thể loại"]
+    User --> UC4["Báo cáo theo ngày đăng"]
+    User --> UC5["Xem danh sách tin tức"]
+
+    UC1 --> DB[(SQLite Database)]
+    UC2 --> DB
+    UC3 --> DB
+    UC4 --> DB
+    UC5 --> DB
+```
+
 | STT | UseCase | Mô tả |
 |-----|---------|-------|
-| 1 | Quản lý thể loại tin | Thêm, sử a, xóa thể loại tin |
+| 1 | Quản lý thể loại tin | Thêm, sửa, xóa thể loại tin |
 | 2 | Quản lý tin tức | Thêm, sửa, xóa tin tức |
 | 3 | Báo cáo theo thể loại | Liệt kê tin tức theo thể loại |
 | 4 | Báo cáo theo ngày đăng | Liệt kê tin tức trong khoảng ngày |
@@ -200,84 +196,169 @@ Sơ đồ kiến trúc tổng quan:
 
 #### 2.2.4. Biểu đồ lớp (Class Diagram)
 
-**Model Layer:**
+```mermaid
+classDiagram
+    class TheLoai {
+        -long maLoai
+        -String tenLoai
+        -String moTa
+        +getMaLoai() long
+        +setMaLoai(long)
+        +getTenLoai() String
+        +setTenLoai(String)
+        +getMoTa() String
+        +setMoTa(String)
+    }
 
-| Lớp | Thuộc tính | Phương thức |
-|-----|-----------|-------------|
-| **TheLoai** | maLoai: long, tenLoai: String, moTa: String | getters, setters |
-| **TinTuc** | maTin: long, tieuDe: String, chiTiet: String, linkHinh: String, maLoai: long, ngayDang: String | getters, setters |
+    class TinTuc {
+        -long maTin
+        -String tieuDe
+        -String chiTiet
+        -String linkHinh
+        -long maLoai
+        -String ngayDang
+        +getMaTin() long
+        +setMaTin(long)
+        +getTieuDe() String
+        +setTieuDe(String)
+        +getChiTiet() String
+        +setChiTiet(String)
+        +getLinkHinh() String
+        +setLinkHinh(String)
+        +getMaLoai() long
+        +setMaLoai(long)
+        +getNgayDang() String
+        +setNgayDang(String)
+    }
 
-**Database Layer:**
+    class NewsDbHelper {
+        +String DB_NAME
+        +int DB_VERSION
+        +insertTheLoai(TheLoai) long
+        +updateTheLoai(TheLoai) int
+        +deleteTheLoai(long) boolean
+        +getAllTheLoai() List~TheLoai~
+        +getTheLoai(long) TheLoai
+        +countTinByMaLoai(long) int
+        +insertTinTuc(TinTuc) long
+        +updateTinTuc(TinTuc) int
+        +deleteTinTuc(long) boolean
+        +getAllTinTuc() List~TinTuc~
+        +getTinTuc(long) TinTuc
+        +getTinTucByTheLoai(long) List~TinTuc~
+        +getTinTucByNgayTrongKhoang(String, String) List~TinTuc~
+        +getTenLoai(long) String
+    }
 
-| Lớp | Phương thức |
-|-----|-------------|
-| **NewsDbHelper** | insertTheLoai(), updateTheLoai(), deleteTheLoai(), getAllTheLoai(), countTinByMaLoai(), insertTinTuc(), updateTinTuc(), deleteTinTuc(), getAllTinTuc(), getTinTucByTheLoai(), getTinTucByNgayTrongKhoang(), getTenLoai() |
+    class MainActivity {
+        +onCreate(Bundle)
+    }
 
-**UI Layer:**
+    class TheLoaiActivity {
+        +onCreate(Bundle)
+    }
 
-| Lớp | Mô tả |
-|-----|-------|
-| **MainActivity** | Màn hình chính, menu điều hướng |
-| **TheLoaiActivity** | Danh sách thể loại tin |
-| **TheLoaiEditActivity** | Form thêm/sửa thể loại tin |
-| **TinTucActivity** | Danh sách tin tức |
-| **TinTucEditActivity** | Form thêm/sửa tin tức |
-| **BaoCaoTheLoaiActivity** | Báo cáo tin tức theo thể loại |
-| **BaoCaoNgayActivity** | Báo cáo tin tức theo khoảng ngày |
+    class TheLoaiEditActivity {
+        +onCreate(Bundle)
+    }
 
-Mối quan hệ giữa các lớp:
+    class TinTucActivity {
+        +onCreate(Bundle)
+    }
 
-- `NewsDbHelper` sử dụng `TheLoai` và `TinTuc` để thao tác với CSDL.
-- Các Activity sử dụng `NewsDbHelper` để truy xuất và cập nhật dữ liệu.
-- `TinTuc` có khóa ngoại `maLoai` tham chiếu đến `TheLoai`.
+    class TinTucEditActivity {
+        +onCreate(Bundle)
+    }
+
+    class BaoCaoTheLoaiActivity {
+        +onCreate(Bundle)
+    }
+
+    class BaoCaoNgayActivity {
+        +onCreate(Bundle)
+    }
+
+    TinTuc "N" --> "1" TheLoai : ma_loai (FK)
+    NewsDbHelper --> TheLoai : uses
+    NewsDbHelper --> TinTuc : uses
+    TheLoaiActivity --> NewsDbHelper : uses
+    TinTucActivity --> NewsDbHelper : uses
+    BaoCaoTheLoaiActivity --> NewsDbHelper : uses
+    BaoCaoNgayActivity --> NewsDbHelper : uses
+```
 
 #### 2.2.5. Biểu đồ tuần tự: Thêm tin tức
 
-```
-User → TinTucActivity → TinTucEditActivity → NewsDbHelper → SQLite DB
+```mermaid
+sequenceDiagram
+    actor User
+    participant TinTucActivity
+    participant TinTucEditActivity
+    participant NewsDbHelper
+    participant SQLiteDB as SQLite DB
 
-1. User chọn "Thêm"
-2. TinTucActivity khởi tạo TinTucEditActivity
-3. TinTucEditActivity hiển thị form nhập liệu
-4. User nhập dữ liệu và xác nhận
-5. TinTucEditActivity gọi NewsDbHelper.insertTinTuc()
-6. NewsDbHelper thực hiện INSERT query
-7. SQLite DB trả về ID mới
-8. NewsDbHelper trả về kết quả cho TinTucEditActivity
-9. TinTucEditActivity trả về RESULT_OK
-10. TinTucActivity cập nhật danh sách
+    User->>TinTucActivity: Chọn "Thêm"
+    TinTucActivity->>TinTucEditActivity: startActivity(intent)
+    TinTucEditActivity->>User: Hiển thị form nhập liệu
+    User->>TinTucEditActivity: Nhập dữ liệu & xác nhận
+    TinTucEditActivity->>NewsDbHelper: insertTinTuc(tinTuc)
+    NewsDbHelper->>SQLiteDB: INSERT INTO tin_tuc VALUES(...)
+    SQLiteDB-->>NewsDbHelper: Trả về ID mới
+    NewsDbHelper-->>TinTucEditActivity: Trả về kết quả
+    TinTucEditActivity-->>TinTucActivity: setResult(RESULT_OK)
+    TinTucActivity->>TinTucActivity: Cập nhật danh sách
+    TinTucActivity->>User: Hiển thị danh sách mới
 ```
 
 #### 2.2.6. Biểu đồ tuần tự: Xóa thể loại tin
 
-```
-User → TheLoaiActivity → NewsDbHelper → SQLite DB
+```mermaid
+sequenceDiagram
+    actor User
+    participant TheLoaiActivity
+    participant NewsDbHelper
+    participant SQLiteDB as SQLite DB
 
-1. User chọn "Xóa" trên một thể loại
-2. TheLoaiActivity hiển thị dialog xác nhận
-3. User xác nhận xóa
-4. TheLoaiActivity gọi NewsDbHelper.countTinByMaLoai()
-5. NewsDbHelper thực hiện SELECT COUNT
-6. SQLite DB trả về số lượng tin
-7. Nếu số lượng > 0: hiển thị thông báo lỗi, dừng
-8. Nếu số lượng = 0: gọi NewsDbHelper.deleteTheLoai()
-9. NewsDbHelper thực hiện DELETE query
-10. TheLoaiActivity cập nhật danh sách
+    User->>TheLoaiActivity: Chọn "Xóa" trên thể loại
+    TheLoaiActivity->>User: Hiển thị dialog xác nhận
+    User->>TheLoaiActivity: Xác nhận xóa
+    TheLoaiActivity->>NewsDbHelper: countTinByMaLoai(maLoai)
+    NewsDbHelper->>SQLiteDB: SELECT COUNT(*) FROM tin_tuc WHERE ma_loai=?
+    SQLiteDB-->>NewsDbHelper: Trả về số lượng
+
+    alt Số lượng > 0
+        NewsDbHelper-->>TheLoaiActivity: count > 0
+        TheLoaiActivity->>User: ⚠️ Thông báo: Không thể xóa
+    else Số lượng = 0
+        NewsDbHelper-->>TheLoaiActivity: count = 0
+        TheLoaiActivity->>NewsDbHelper: deleteTheLoai(maLoai)
+        NewsDbHelper->>SQLiteDB: DELETE FROM the_loai WHERE ma_loai=?
+        SQLiteDB-->>NewsDbHelper: Trả về kết quả
+        TheLoaiActivity->>TheLoaiActivity: Cập nhật danh sách
+        TheLoaiActivity->>User: ✅ Xóa thành công
+    end
 ```
 
 #### 2.2.7. Sơ đồ thực thể quan hệ (ER Diagram)
 
-```
-┌──────────────────────┐         ┌──────────────────────────┐
-│     THE_LOAI         │         │        TIN_TUC           │
-├──────────────────────┤         ├──────────────────────────┤
-│ ma_loai (PK)    int  │───┐     │ ma_tin (PK)         int  │
-│ ten_loai        text │   │     │ tieu_de             text │
-│ mo_ta           text │   └─────│ ma_loai (FK)        int  │
-└──────────────────────┘   1:N   │ chi_tiet            text │
-                                │ link_hinh           text │
-                                │ ngay_dang           text │
-                                └──────────────────────────┘
+```mermaid
+erDiagram
+    THE_LOAI {
+        int ma_loai PK "PRIMARY KEY, AUTOINCREMENT"
+        text ten_loai "NOT NULL"
+        text mo_ta "Mô tả thể loại"
+    }
+
+    TIN_TUC {
+        int ma_tin PK "PRIMARY KEY, AUTOINCREMENT"
+        text tieu_de "NOT NULL"
+        text chi_tiet "Chi tiết tin"
+        text link_hinh "Link hình ảnh"
+        int ma_loai FK "NOT NULL, FOREIGN KEY"
+        text ngay_dang "NOT NULL, YYYY-MM-DD"
+    }
+
+    THE_LOAI ||--o{ TIN_TUC : "1:N (ma_loai)"
 ```
 
 **Giải thích:**
@@ -327,6 +408,24 @@ User → TheLoaiActivity → NewsDbHelper → SQLite DB
 | 6 | BaoCaoTheLoaiActivity | Báo cáo tin tức theo thể loại |
 | 7 | BaoCaoNgayActivity | Báo cáo tin tức theo khoảng ngày |
 
+Sơ đồ điều hướng màn hình:
+
+```mermaid
+flowchart TD
+    MainActivity["🏠 MainActivity\n(Màn hình chính)"]
+
+    MainActivity --> TL["📂 TheLoaiActivity\n(Danh sách thể loại)"]
+    MainActivity --> TT["📰 TinTucActivity\n(Danh sách tin tức)"]
+    MainActivity --> BCTL["📊 BaoCaoTheLoaiActivity\n(Báo cáo theo thể loại)"]
+    MainActivity --> BCN["📅 BaoCaoNgayActivity\n(Báo cáo theo ngày)"]
+
+    TL --> TLE["✏️ TheLoaiEditActivity\n(Thêm/Sửa thể loại)"]
+    TT --> TTE["✏️ TinTucEditActivity\n(Thêm/Sửa tin tức)"]
+
+    TLE --> TL
+    TTE --> TT
+```
+
 ---
 
 ## CHƯƠNG 3: KẾT QUẢ ỨNG DỤNG
@@ -335,25 +434,18 @@ User → TheLoaiActivity → NewsDbHelper → SQLite DB
 
 Ứng dụng được triển khai theo mô hình **standalone** (độc lập) trên thiết bị Android. Toàn bộ dữ liệu được lưu trữ cục bộ trong cơ sở dữ liệu SQLite tích hợp sẵn trong hệ điều hành Android.
 
-```
-┌─────────────────────────────────────────┐
-│          Thiết bị Android               │
-│  ┌───────────────────────────────────┐  │
-│  │   Ứng dụng Quản lý tin tức       │  │
-│  │  ┌─────────┬──────────┬────────┐  │  │
-│  │  │UI Layer │ Business │ Data   │  │  │
-│  │  │(Activity│ Logic    │ Layer  │  │  │
-│  │  │ + XML)  │(Model,   │(SQLite)│  │  │
-│  │  │         │ Helper)  │        │  │  │
-│  │  └─────────┴──────────┴────────┘  │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │     Hệ điều hành Android          │  │
-│  └───────────────────────────────────┘  │
-│  ┌───────────────────────────────────┐  │
-│  │     Phần cứng thiết bị            │  │
-│  └───────────────────────────────────┘  │
-└─────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Hardware["Phần cứng thiết bị"]
+        subgraph OS["Hệ điều hành Android"]
+            subgraph App["Ứng dụng Quản lý tin tức"]
+                UI["📱 UI Layer\n(Activity + XML)"]
+                BL["⚙️ Business Logic\n(Model + Helper)"]
+                DL["🗄️ Data Layer\n(SQLite)"]
+                UI --> BL --> DL
+            end
+        end
+    end
 ```
 
 ### 3.2. Các bước cài đặt và triển khai
@@ -370,7 +462,7 @@ User → TheLoaiActivity → NewsDbHelper → SQLite DB
 
 **Bước 1:** Clone repository từ GitHub:
 
-```
+```bash
 git clone git@github.com:dainv27/ptit.git
 ```
 
@@ -396,39 +488,35 @@ git clone git@github.com:dainv27/ptit.git
 
 #### 3.2.3. Cấu trúc thư mục project
 
-```
-BaiTapLon/
-├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/vn/dainv/btl/
-│   │   │   │   ├── MainActivity.java
-│   │   │   │   ├── TheLoaiActivity.java
-│   │   │   │   ├── TheLoaiEditActivity.java
-│   │   │   │   ├── TinTucActivity.java
-│   │   │   │   ├── TinTucEditActivity.java
-│   │   │   │   ├── BaoCaoTheLoaiActivity.java
-│   │   │   │   ├── BaoCaoNgayActivity.java
-│   │   │   │   ├── TinTucItemBinder.java
-│   │   │   │   ├── model/
-│   │   │   │   │   ├── TheLoai.java
-│   │   │   │   │   └── TinTuc.java
-│   │   │   │   ├── database/
-│   │   │   │   │   └── NewsDbHelper.java
-│   │   │   │   └── util/
-│   │   │   │       └── DateTextUtil.java
-│   │   │   ├── res/
-│   │   │   │   ├── layout/
-│   │   │   │   ├── values/
-│   │   │   │   ├── drawable/
-│   │   │   │   └── mipmap/
-│   │   │   └── AndroidManifest.xml
-│   │   ├── test/
-│   │   └── androidTest/
-│   └── build.gradle
-├── build.gradle
-├── settings.gradle
-└── gradle/
+```mermaid
+flowchart TD
+    Root["BaiTapLon/"]
+
+    Root --> app["app/"]
+    Root --> build["build.gradle"]
+    Root --> settings["settings.gradle"]
+    Root --> gradle["gradle/"]
+
+    app --> src["src/"]
+    app --> appbuild["build.gradle"]
+
+    src --> main["main/"]
+    src --> test["test/"]
+    src --> androidTest["androidTest/"]
+
+    main --> java["java/vn/dainv/btl/"]
+    main --> res["res/"]
+    main --> manifest["AndroidManifest.xml"]
+
+    java --> activities["Activities\nMainActivity\nTheLoaiActivity\nTinTucActivity\n..."]
+    java --> model["model/\nTheLoai.java\nTinTuc.java"]
+    java --> database["database/\nNewsDbHelper.java"]
+    java --> util["util/\nDateTextUtil.java"]
+
+    res --> layout["layout/"]
+    res --> values["values/"]
+    res --> drawable["drawable/"]
+    res --> mipmap["mipmap/"]
 ```
 
 ### 3.3. Các kết quả thực hiện được
